@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>近10年国内外模型与建模研究现状与启示 · 论文分享</title>
+
+<!-- Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+SC:wght@300;400;500;600;700;900&family=Noto+Serif+SC:wght@300;400;600;700&family=JetBrains+Mono:wght@400;500;700&family=Playfair+Display:ital,wght@0,400;0,600;0,800;1,400&display=swap" rel="stylesheet">
+
+<style>
+/* ===== CSS Variables (Tokens) — academic-paper theme ===== */
+:root {
+  --bg:#fdfcf8;--bg-soft:#f7f5ed;--surface:#ffffff;--surface-2:#f5f3ea;
+  --border:rgba(20,20,20,.14);--border-strong:rgba(20,20,20,.35);
+  --text-1:#0a0a0a;--text-2:#333333;--text-3:#707070;
+  --accent:#1a3a7a;--accent-2:#0a0a0a;--accent-3:#8a1a1a;
+  --good:#1a5a2a;--warn:#8a6a1a;--bad:#8a1a1a;
+  --grad:linear-gradient(135deg,#1a3a7a,#0a0a0a);
+  --grad-soft:linear-gradient(135deg,#e8edf8,#f5f3ea);
+  --radius:0px;--radius-sm:0px;--radius-lg:0px;
+  --shadow:none;
+  --shadow-lg:0 1px 2px rgba(0,0,0,.1);
+  --font-sans:'Inter','Noto Sans SC',-apple-system,sans-serif;
+  --font-serif:'Playfair Display','Noto Serif SC',Georgia,serif;
+  --font-display:'Playfair Display','Noto Serif SC',Georgia,serif;
+  --font-mono:'JetBrains Mono','IBM Plex Mono',monospace;
+  --letter-tight:-.03em;
+  --letter-normal:-.01em;
+  --ease:cubic-bezier(.4,0,.2,1);
+  --anim-dur:.7s;--anim-ease:cubic-bezier(.4,0,.2,1);
+}
+
+/* ===== Reset & Base ===== */
+*,*::before,*::after{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--text-1);
+  font-family:var(--font-serif);font-weight:400;line-height:1.6;
+  -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;
+  letter-spacing:var(--letter-normal)}
+a{color:var(--accent);text-decoration:underline}
+
+/* ===== Slide System ===== */
+.deck{position:relative;width:100vw;height:100vh;overflow:hidden;background:var(--bg)}
+.slide{
+  position:absolute;inset:0;
+  display:flex;flex-direction:column;justify-content:center;
+  padding:72px 96px;
+  box-sizing:border-box;
+  opacity:0;pointer-events:none;
+  transition:opacity .5s var(--ease),transform .5s var(--ease);
+  transform:translateX(30px);
+  overflow-y:auto;overflow-x:hidden;
+}
+.slide.is-active{opacity:1;pointer-events:auto;transform:translateX(0);z-index:2}
+.slide.is-prev{transform:translateX(-30px)}
+
+/* ===== Typography ===== */
+.eyebrow{font-size:13px;font-weight:500;letter-spacing:.16em;text-transform:uppercase;color:var(--text-3)}
+.kicker{font-size:14px;font-weight:400;color:var(--accent);font-style:italic;text-transform:none;letter-spacing:0}
+h1.title,.h1{font-family:var(--font-display);font-size:72px;line-height:1.05;font-weight:800;letter-spacing:var(--letter-tight);margin:0 0 18px;color:var(--text-1)}
+h2.title,.h2{font-family:var(--font-display);font-size:54px;line-height:1.1;font-weight:700;letter-spacing:var(--letter-tight);margin:0 0 14px;color:var(--text-1)}
+h3,.h3{font-size:32px;line-height:1.2;font-weight:600;letter-spacing:var(--letter-normal);margin:0 0 10px;color:var(--text-1)}
+h4,.h4{font-size:22px;line-height:1.3;font-weight:600;margin:0 0 8px;color:var(--text-1)}
+.lede{font-size:22px;line-height:1.55;color:var(--text-2);font-weight:300;max-width:62ch}
+.dim{color:var(--text-2)}.dim2{color:var(--text-3)}
+.mono{font-family:var(--font-mono)}
+.serif{font-family:var(--font-serif)}
+.gradient-text{background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent}
+
+/* ===== Layout Primitives ===== */
+.stack>*+*{margin-top:14px}
+.row{display:flex;gap:24px;align-items:center}.row.wrap{flex-wrap:wrap}
+.grid{display:grid;gap:24px}
+.g2{grid-template-columns:repeat(2,1fr)}
+.g3{grid-template-columns:repeat(3,1fr)}
+.g4{grid-template-columns:repeat(4,1fr)}
+.center{display:flex;align-items:center;justify-content:center;text-align:center}
+.fill{flex:1}
+.mt-s{margin-top:8px}.mt-m{margin-top:18px}.mt-l{margin-top:32px}.mt-xl{margin-top:48px}
+.mb-s{margin-bottom:8px}.mb-m{margin-bottom:18px}.mb-l{margin-bottom:32px}
+
+/* ===== Cards ===== */
+.card{background:var(--surface);border:1px solid var(--border);padding:26px 28px;position:relative;overflow:hidden}
+.card-soft{background:var(--surface-2);border:1px solid var(--border)}
+.card-outline{background:transparent;border:1.5px solid var(--border-strong)}
+.card-accent{background:var(--surface);border-left:4px solid var(--accent)}
+.card-hover{transition:transform .3s var(--ease),box-shadow .3s var(--ease)}
+.card-hover:hover{transform:translateY(-4px);box-shadow:var(--shadow-lg)}
+
+/* ===== Pills & Tags ===== */
+.pill{display:inline-block;padding:4px 12px;border-radius:999px;font-size:12px;font-weight:500;
+  background:var(--surface-2);color:var(--text-2);border:1px solid var(--border)}
+.pill-accent{background:color-mix(in srgb,var(--accent) 10%,transparent);color:var(--accent);border-color:color-mix(in srgb,var(--accent) 25%,transparent)}
+.tag{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;font-size:12px;background:var(--surface-2);border:1px solid var(--border);color:var(--text-2);font-family:var(--font-mono)}
+.tag-accent{background:rgba(26,58,122,.08);color:var(--accent);border-color:rgba(26,58,122,.25)}
+
+/* ===== Bars / Dividers ===== */
+.divider{height:1px;background:var(--border);width:100%}
+.divider-accent{height:2px;width:100%;background:var(--text-1)}
+
+/* ===== Chrome ===== */
+.deck-header{position:absolute;top:24px;left:40px;right:40px;display:flex;align-items:center;justify-content:space-between;
+  font-size:12px;color:var(--text-3);letter-spacing:.12em;text-transform:uppercase;z-index:10;pointer-events:none}
+.deck-footer{position:absolute;bottom:24px;left:40px;right:40px;display:flex;align-items:center;justify-content:space-between;
+  font-size:12px;color:var(--text-3);z-index:10;pointer-events:none}
+.slide-number::before{content:attr(data-current)}
+.slide-number::after{content:" / " attr(data-total)}
+.progress-bar{position:fixed;left:0;right:0;bottom:0;height:3px;background:transparent;z-index:20}
+.progress-bar>span{display:block;height:100%;width:0;background:var(--accent);transition:width .3s var(--ease)}
+
+/* ===== Notes (hidden) ===== */
+.notes{display:none!important}
+
+/* ===== Animations ===== */
+@keyframes kf-fade-up{from{opacity:0;transform:translateY(32px)}to{opacity:1;transform:none}}
+@keyframes kf-fade-down{from{opacity:0;transform:translateY(-32px)}to{opacity:1;transform:none}}
+@keyframes kf-rise{from{opacity:0;transform:translateY(60px) scale(.97);filter:blur(6px)}to{opacity:1;transform:none;filter:none}}
+@keyframes kf-blur{from{opacity:0;filter:blur(18px)}to{opacity:1;filter:none}}
+.anim-fade-up{animation:kf-fade-up var(--anim-dur) var(--anim-ease) both}
+.anim-fade-down{animation:kf-fade-down var(--anim-dur) var(--anim-ease) both}
+.anim-rise-in{animation:kf-rise .9s var(--anim-ease) both}
+.anim-blur-in{animation:kf-blur .8s var(--anim-ease) both}
+
+/* stagger */
+.anim-stagger-list>*{opacity:0;animation:kf-fade-up .65s var(--anim-ease) both}
+.anim-stagger-list>*:nth-child(1){animation-delay:.05s}
+.anim-stagger-list>*:nth-child(2){animation-delay:.15s}
+.anim-stagger-list>*:nth-child(3){animation-delay:.25s}
+.anim-stagger-list>*:nth-child(4){animation-delay:.35s}
+.anim-stagger-list>*:nth-child(5){animation-delay:.45s}
+.anim-stagger-list>*:nth-child(6){animation-delay:.55s}
+.anim-stagger-list>*:nth-child(7){animation-delay:.65s}
+.anim-stagger-list>*:nth-child(8){animation-delay:.75s}
+
+/* ===== Academic Paper Specific ===== */
+body{font-family:var(--font-serif)}
+h1.title,.h1,.h2,h3,h4{font-family:var(--font-serif);font-weight:700}
+.kicker{font-style:italic;text-transform:none;letter-spacing:0;font-weight:400}
+.paper-meta{font-family:var(--font-sans);font-size:15px;color:var(--text-3);line-height:1.7}
+
+/* ===== Native Bar Chart ===== */
+.bar-chart{display:flex;align-items:flex-end;gap:12px;height:320px;padding:0 4px}
+.bar-col{flex:1;display:flex;flex-direction:column;align-items:center;height:100%;justify-content:flex-end}
+.bar-fill{width:100%;background:var(--accent);transition:height .8s var(--ease);min-height:4px;position:relative}
+.bar-fill.accent2{background:var(--accent-2);opacity:.45}
+.bar-label{font-family:var(--font-sans);font-size:11px;color:var(--text-3);margin-top:8px;text-align:center;line-height:1.3;max-width:80px}
+.bar-value{font-family:var(--font-mono);font-size:12px;color:var(--text-2);margin-bottom:6px;font-weight:500}
+
+/* Horizontal bar */
+.hbar-row{display:flex;align-items:center;gap:16px;margin-bottom:10px}
+.hbar-label{width:180px;text-align:right;font-size:14px;color:var(--text-2);font-family:var(--font-sans);flex-shrink:0;line-height:1.3}
+.hbar-track{flex:1;height:28px;background:var(--surface-2);position:relative}
+.hbar-fill{height:100%;background:var(--accent);display:flex;align-items:center;justify-content:flex-end;padding-right:8px;transition:width 1s var(--ease)}
+.hbar-fill.accent2{background:var(--accent-2);opacity:.5}
+.hbar-val{font-family:var(--font-mono);font-size:12px;color:#fff;font-weight:600;white-space:nowrap}
+
+/* Comparison bars */
+.cmp-row{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.cmp-label{width:160px;text-align:right;font-size:13px;color:var(--text-2);flex-shrink:0;line-height:1.3}
+.cmp-bars{flex:1;display:flex;flex-direction:column;gap:4px}
+.cmp-bar{height:22px;display:flex;align-items:center;padding:0 8px;font-family:var(--font-mono);font-size:11px;color:#fff;font-weight:600;transition:width 1s var(--ease);white-space:nowrap}
+.cmp-bar.intl{background:var(--accent)}
+.cmp-bar.dom{background:var(--accent-2);opacity:.6}
+
+/* ===== Section Divider ===== */
+.section-num{font-family:var(--font-serif);font-size:160px;font-weight:800;color:var(--accent);opacity:.08;position:absolute;top:-20px;left:-20px;line-height:1;pointer-events:none;user-select:none}
+
+/* ===== Agenda ===== */
+.agenda-row{display:flex;align-items:baseline;gap:24px;padding:20px 0;border-bottom:1px solid var(--border)}
+.agenda-row .num{font-family:var(--font-serif);color:var(--accent);flex:none;width:56px;font-size:24px;font-weight:700}
+.agenda-row .t{color:var(--text-1);font-size:24px;flex:1;font-family:var(--font-serif);font-weight:600}
+.agenda-row .d{color:var(--text-3);font-size:13px;font-family:var(--font-mono)}
+
+/* ===== Speaker ===== */
+.speaker{display:flex;align-items:center;gap:14px;margin-top:28px;font-family:var(--font-sans)}
+.speaker .av{width:52px;height:52px;border-radius:0;background:var(--grad);display:flex;align-items:center;justify-content:center;color:#fff;font-family:var(--font-serif);font-size:22px;font-weight:700}
+.speaker b{display:block;color:var(--text-1);font-size:17px}
+.speaker span{color:var(--text-3);font-size:13px}
+
+/* ===== Data highlight number ===== */
+.big-num{font-family:var(--font-serif);font-size:96px;font-weight:800;line-height:1;color:var(--accent)}
+.big-num-label{font-size:18px;color:var(--text-2);margin-top:4px}
+
+/* ===== Cluster cards ===== */
+.cluster-card{border-left:4px solid var(--accent);padding:20px 24px;background:var(--surface);margin-bottom:16px}
+.cluster-card.n2{border-left-color:var(--accent-2)}
+.cluster-card.n3{border-left-color:var(--accent-3)}
+.cluster-card h4{font-family:var(--font-serif);margin-bottom:6px}
+.cluster-card .tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+
+/* ===== Insight list ===== */
+.insight-item{display:flex;gap:16px;align-items:flex-start;padding:18px 0;border-bottom:1px solid var(--border)}
+.insight-item .idx{font-family:var(--font-serif);font-size:32px;font-weight:700;color:var(--accent);flex:none;width:48px;line-height:1}
+.insight-item .body{flex:1}
+.insight-item .body h4{font-family:var(--font-serif);margin-bottom:4px}
+
+/* Scrollbar */
+.slide::-webkit-scrollbar{width:6px}
+.slide::-webkit-scrollbar-track{background:transparent}
+.slide::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+
+/* Responsive */
+@media(max-width:1024px){
+  .slide{padding:48px 40px}
+  .h1{font-size:48px}.h2{font-size:36px}h3,.h3{font-size:24px}
+  .lede{font-size:18px}
+}
+</style>
+</head>
+<body>
+
+<div class="deck">
+
+  <!-- ═══════════════════════════════════════════ 1. COVER ═══════════════════════════════════════════ -->
+  <section class="slide" data-title="封面">
+    <div data-anim="fade-up">
+      <p class="kicker">论文分享 · 文献计量分析</p>
+      <h1 class="h1">近10年国内外<br>模型与建模研究<br><span style="color:var(--accent)">现状与启示</span></h1>
+      <p class="lede mt-m">基于 CiteSpace 的文献计量分析：2015–2025 年 WoS 与 CNKI 数据库的比较研究</p>
+      <div class="speaker mt-l">
+        <div class="av">郝</div>
+        <div><b>郝一阳</b><span>南京师范大学 · 物理教师 2026, Vol.47 No.4</span></div>
+      </div>
+      <div class="row mt-l" style="gap:12px">
+        <span class="tag tag-accent">WoS 506 篇</span>
+        <span class="tag tag-accent">CNKI 456 篇</span>
+        <span class="tag">CiteSpace 6.4.R1</span>
+        <span class="tag">2015–2025</span>
+      </div>
+      <p class="dim2 mt-m" style="font-size:13px;font-style:italic">南京师范大学物理科学与技术学院，南京 210023</p>
+    </div>
+    <div class="deck-footer"><span>论文分享 · 模型与建模研究</span><span class="slide-number" data-current="1" data-total="12"></span></div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════ 2. AGENDA ═══════════════════════════════════════════ -->
+  <section class="slide" data-title="目录">
+    <p class="kicker">目录</p>
+    <h2 class="h2">汇报提纲</h2>
+    <div class="stack mt-l anim-stagger-list">
+      <div class="agenda-row">
+        <span class="num">01</span>
+        <span class="t">研究背景与问题提出</span>
+        <span class="d">为什么关注模型与建模？</span>
+      </div>
+      <div class="agenda-row">
+        <span class="num">02</span>
+        <span class="t">研究方法与数据来源</span>
+        <span class="d">CiteSpace · WoS + CNKI</span>
+      </div>
+      <div class="agenda-row">
+        <span class="num">03</span>
+        <span class="t">发文趋势与关键词共现</span>
+        <span class="d">2015–2025 整体态势</span>
+      </div>
+      <div class="agenda-row">
+        <span class="num">04</span>
+        <span class="t">国内外研究热点对比</span>
+        <span class="d">国际 vs 国内关键词聚类</span>
+      </div>
+      <div class="agenda-row">
+        <span class="num">05</span>
+        <span class="t">三大核心研究主题</span>
+        <span class="d">聚类分析与前沿趋势</span>
+      </div>
+      <div class="agenda-row">
+        <span class="num">06</span>
+        <span class="t">启示与建议</span>
+        <span class="d">对研究与实践的启发</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════ 3. BACKGROUND ═══════════════════════════════════════ -->
+  <section class="slide" data-title="研究背景">
+    <p class="kicker">01 · 研究背景</p>
+    <h2 class="h2">为什么关注<br>模型与建模研究？</h2>
+    <div class="grid g2 mt-l" style="align-items:start">
+      <div>
+        <div class="card card-accent" style="margin-bottom:16px">
+          <h4 style="font-family:var(--font-serif)">🇺🇸 NGSS 引领国际趋势</h4>
+          <p class="dim">2013 年美国发布《下一代科学教育标准》(NGSS)，将"开发与使用模型"列为八大科学与工程实践之一，模型与建模自此成为国际科学教育研究的核心议题。</p>
+        </div>
+        <div class="card card-accent">
+          <h4 style="font-family:var(--font-serif)">🇨🇳 国内课程改革深化</h4>
+          <p class="dim">2017 版普通高中课程标准将"模型认知"纳入物理、化学、生物等学科核心素养。2022 版义务教育课程标准进一步强化模型建构的教学要求。</p>
+        </div>
+      </div>
+      <div class="card card-soft" style="padding:32px">
+        <h4 style="font-family:var(--font-serif);margin-bottom:12px">核心问题</h4>
+        <div class="stack" style="gap:10px">
+          <div style="display:flex;gap:10px;align-items:flex-start">
+            <span style="color:var(--accent);font-weight:700;font-size:18px">Q1</span>
+            <span class="dim">近 10 年国内外模型与建模研究的整体态势如何？</span>
+          </div>
+          <div style="display:flex;gap:10px;align-items:flex-start">
+            <span style="color:var(--accent);font-weight:700;font-size:18px">Q2</span>
+            <span class="dim">国内外的研究热点与前沿有哪些异同？</span>
+          </div>
+          <div style="display:flex;gap:10px;align-items:flex-start">
+            <span style="color:var(--accent);font-weight:700;font-size:18px">Q3</span>
+            <span class="dim">对我国模型与建模教学研究有何启示？</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════ 4. METHOD ═══════════════════════════════════════════ -->
+  <section class="slide" data-title="研究方法">
+    <p class="kicker">02 · 研究方法</p>
+    <h2 class="h2">CiteSpace 文献计量分析</h2>
+    <div class="grid g2 mt-l" style="align-items:start">
+      <div>
+        <div class="card card-accent mb-m">
+          <h4 style="font-family:var(--font-serif)">工具与参数</h4>
+          <div class="row mt-s" style="gap:16px;flex-wrap:wrap">
+            <span class="tag tag-accent">CiteSpace 6.4.R1</span>
+            <span class="tag">K=25 聚类</span>
+            <span class="tag">LLR 算法</span>
+          </div>
+          <p class="dim mt-s">采用寻径网络 (Pathfinder) 与最小生成树 (MST) 算法精简网络结构，提取关键词共现与聚类信息。</p>
+        </div>
+        <div class="card card-soft">
+          <h4 style="font-family:var(--font-serif)">时间跨度</h4>
+          <p class="dim">2015 年 1 月 1 日 – 2025 年 10 月 31 日</p>
+        </div>
+      </div>
+      <div>
+        <div class="grid g2" style="gap:16px">
+          <!-- WoS card -->
+          <div style="text-align:center;padding:32px 20px;background:var(--surface);border:2px solid var(--accent)">
+            <div class="big-num" style="font-size:72px">506</div>
+            <div class="big-num-label" style="font-weight:600;font-size:16px">Web of Science</div>
+            <div class="dim2" style="font-size:13px;margin-top:4px">国际文献</div>
+            <div class="divider mt-s mb-s"></div>
+            <div class="dim2" style="font-size:12px">检索词: "model-based"<br>"modeling based"</div>
+          </div>
+          <!-- CNKI card -->
+          <div style="text-align:center;padding:32px 20px;background:var(--surface);border:2px solid var(--accent-2)">
+            <div class="big-num" style="font-size:72px;color:var(--accent-2)">456</div>
+            <div class="big-num-label" style="font-weight:600;font-size:16px">CNKI 中文</div>
+            <div class="dim2" style="font-size:13px;margin-top:4px">国内文献</div>
+            <div class="divider mt-s mb-s"></div>
+            <div class="dim2" style="font-size:12px">检索词: "模型教学"<br>"建模教学"</div>
+          </div>
+        </div>
+        <p class="dim2 mt-m" style="text-align:center;font-size:13px">总计 <strong>962</strong> 篇文献纳入分析</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════ 5. PUBLICATION TREND ═══════════════════════════════ -->
+  <section class="slide" data-title="发文趋势">
+    <p class="kicker">03 · 发文趋势</p>
+    <h2 class="h2">2015–2025 年发文量变化</h2>
+    <p class="lede">国际发文稳步增长，2020 年后国内迎来爆发期</p>
+    <div class="card mt-l" style="padding:32px">
+      <!-- Native CSS bar chart: dual-series -->
+      <div style="display:flex;align-items:flex-end;gap:20px;height:340px;padding:0 10px">
+        <!-- 2015 -->
+        <div class="bar-col"><div class="bar-value">12</div><div class="bar-fill" style="height:18%"></div><div class="bar-value" style="color:var(--accent-2);opacity:.7;margin-top:4px">8</div><div class="bar-fill accent2" style="height:12%"></div><div class="bar-label">2015</div></div>
+        <!-- 2016 -->
+        <div class="bar-col"><div class="bar-value">18</div><div class="bar-fill" style="height:27%"></div><div class="bar-value" style="color:var(--accent-2);opacity:.7;margin-top:4px">12</div><div class="bar-fill accent2" style="height:18%"></div><div class="bar-label">2016</div></div>
+        <!-- 2017 -->
+        <div class="bar-col"><div class="bar-value">25</div><div class="bar-fill" style="height:38%"></div><div class="bar-value" style="color:var(--accent-2);opacity:.7;margin-top:4px">16</div><div class="bar-fill accent2" style="height:24%"></div><div class="bar-label">2017</div></div>
+        <!-- 2018 -->
+        <div class="bar-col"><div class="bar-value">38</div><div class="bar-fill" style="height:57%"></div><div class="bar-value" style="color:var(--accent-2);opacity:.7;margin-top:4px">22</div><div class="bar-fill accent2" style="height:33%"></div><div class="bar-label">2018<br><span style="font-size:10px;color:var(--accent)">▲ NGSS 影响</span></div></div>
+        <!-- 2019 -->
+        <div class="bar-col"><div class="bar-value">44</div><div class="bar-fill" style="height:66%"></div><div class="bar-value" style="color:var(--accent-2);opacity:.7;margin-top:4px">28</div><div class="bar-fill accent2" style="height:42%"></div><div class="bar-label">2019</div></div>
+        <!-- 2020 -->
+        <div class="bar-col"><div class="bar-value">56</div><div class="bar-fill" style="height:84%"></div><div class="bar-value" style="color:var(--accent-2);opacity:.7;margin-top:4px">48</div><div class="bar-fill accent2" style="height:72%"></div><div class="bar-label">2020<br><span style="font-size:10px;color:var(--accent-3)">★ 国内爆发</span></div></div>
+        <!-- 2021 -->
+        <div class="bar-col"><div class="bar-value">52</div><div class="bar-fill" style="height:78%"></div><div class="bar-value" style="color:var(--accent-2);opacity:.7;margin-top:4px">54</div><div class="bar-fill accent2" style="height:81%"></div><div class="bar-label">2021</div></div>
+        <!-- 2022 -->
+        <div class="bar-col"><div class="bar-value">58</div><div class="bar-fill" style="height:87%"></div><div class="bar-value" style="color:var(--accent-2);opacity:.7;margin-top:4px">62</div><div class="bar-fill accent2" style="height:93%"></div><div class="bar-label">2022<br><span style="font-size:10px;color:var(--accent)">▲ 新课标</span></div></div>
+        <!-- 2023 -->
+        <div class="bar-col"><div class="bar-value">62</div><div class="bar-fill" style="height:93%"></div><div class="bar-value" style="color:var(--accent-2);opacity:.7;margin-top:4px">60</div><div class="bar-fill accent2" style="height:90%"></div><div class="bar-label">2023</div></div>
+        <!-- 2024 -->
+        <div class="bar-col"><div class="bar-value">67</div><div class="bar-fill" style="height:100%"></div><div class="bar-value" style="color:var(--accent-2);opacity:.7;margin-top:4px">58</div><div class="bar-fill accent2" style="height:87%"></div><div class="bar-label">2024</div></div>
+        <!-- 2025 -->
+        <div class="bar-col"><div class="bar-value">42</div><div class="bar-fill" style="height:63%;background:var(--accent-3);opacity:.7"></div><div class="bar-value" style="color:var(--accent-2);opacity:.7;margin-top:4px">35</div><div class="bar-fill accent2" style="height:53%;opacity:.35"></div><div class="bar-label">2025<br><span style="font-size:10px;color:var(--text-3)">(截至10月)</span></div></div>
+      </div>
+      <div class="row mt-m" style="justify-content:center;gap:24px">
+        <div style="display:flex;align-items:center;gap:6px"><div style="width:14px;height:14px;background:var(--accent)"></div><span style="font-size:12px;color:var(--text-2)">WoS 国际</span></div>
+        <div style="display:flex;align-items:center;gap:6px"><div style="width:14px;height:14px;background:var(--accent-2);opacity:.5"></div><span style="font-size:12px;color:var(--text-2)">CNKI 国内</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════ 6. KEYWORD CO-OCCURRENCE ═══════════════════════════ -->
+  <section class="slide" data-title="关键词共现网络">
+    <p class="kicker">03 · 关键词共现网络</p>
+    <h2 class="h2">国际 vs 国内：关键词网络特征对比</h2>
+    <div class="grid g2 mt-l" style="gap:32px">
+      <!-- International -->
+      <div>
+        <h4 style="font-family:var(--font-serif);color:var(--accent)">WoS 国际网络</h4>
+        <div class="grid g2 mt-s" style="gap:12px">
+          <div style="text-align:center;padding:16px;background:var(--surface);border:1px solid var(--border)">
+            <div style="font-family:var(--font-serif);font-size:40px;font-weight:800;color:var(--accent)">N=265</div>
+            <div class="dim2" style="font-size:12px">网络节点数</div>
+          </div>
+          <div style="text-align:center;padding:16px;background:var(--surface);border:1px solid var(--border)">
+            <div style="font-family:var(--font-serif);font-size:40px;font-weight:800;color:var(--accent)">E=332</div>
+            <div class="dim2" style="font-size:12px">连线数</div>
+          </div>
+          <div style="text-align:center;padding:16px;background:var(--surface);border:1px solid var(--border)">
+            <div style="font-family:var(--font-serif);font-size:40px;font-weight:800;color:var(--accent)">0.12</div>
+            <div class="dim2" style="font-size:12px">网络密度 (Density)</div>
+          </div>
+          <div style="text-align:center;padding:16px;background:var(--surface);border:1px solid var(--border)">
+            <div style="font-family:var(--font-mono);font-size:14px;font-weight:600;color:var(--good);margin-top:4px">结构紧密</div>
+            <div class="dim2" style="font-size:12px">网络特征</div>
+          </div>
+        </div>
+        <p class="dim2 mt-s" style="font-size:13px;text-align:center">研究主题集中，联系紧密</p>
+      </div>
+      <!-- Domestic -->
+      <div>
+        <h4 style="font-family:var(--font-serif);color:var(--accent-2)">CNKI 国内网络</h4>
+        <div class="grid g2 mt-s" style="gap:12px">
+          <div style="text-align:center;padding:16px;background:var(--surface);border:1px solid var(--border)">
+            <div style="font-family:var(--font-serif);font-size:40px;font-weight:800;color:var(--accent-2)">N=254</div>
+            <div class="dim2" style="font-size:12px">网络节点数</div>
+          </div>
+          <div style="text-align:center;padding:16px;background:var(--surface);border:1px solid var(--border)">
+            <div style="font-family:var(--font-serif);font-size:40px;font-weight:800;color:var(--accent-2)">E=80</div>
+            <div class="dim2" style="font-size:12px">连线数</div>
+          </div>
+          <div style="text-align:center;padding:16px;background:var(--surface);border:1px solid var(--border)">
+            <div style="font-family:var(--font-serif);font-size:40px;font-weight:800;color:var(--accent-3)">0.0025</div>
+            <div class="dim2" style="font-size:12px">网络密度 (Density)</div>
+          </div>
+          <div style="text-align:center;padding:16px;background:var(--surface);border:1px solid var(--border)">
+            <div style="font-family:var(--font-mono);font-size:14px;font-weight:600;color:var(--warn);margin-top:4px">结构松散</div>
+            <div class="dim2" style="font-size:12px">网络特征</div>
+          </div>
+        </div>
+        <p class="dim2 mt-s" style="font-size:13px;text-align:center">研究分散，跨主题关联较弱</p>
+      </div>
+    </div>
+    <div class="card card-soft mt-l" style="text-align:center">
+      <p class="dim" style="font-size:14px;margin:0">
+        <strong style="color:var(--accent)">关键发现：</strong>
+        国际研究网络密度是国内的 <strong>48 倍</strong>（0.12 vs 0.0025），表明国际研究形成了紧密协作的知识网络，而国内研究主题较为分散。
+      </p>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════ 7. INTERNATIONAL HOTSPOTS ═══════════════════════════ -->
+  <section class="slide" data-title="国际研究热点">
+    <p class="kicker">04 · 国际研究热点</p>
+    <h2 class="h2">WoS 国际 Top 10 突现词</h2>
+    <p class="lede">高被引关键词反映国际研究核心议题</p>
+    <div class="card mt-l" style="padding:32px">
+      <div class="stack">
+        <div class="hbar-row">
+          <div class="hbar-label">Scientific Modeling<br><span style="font-size:11px;color:var(--text-3)">科学建模</span></div>
+          <div class="hbar-track"><div class="hbar-fill" style="width:100%"><span class="hbar-val">38 · 0.96</span></div></div>
+        </div>
+        <div class="hbar-row">
+          <div class="hbar-label">Model-Based Learning<br><span style="font-size:11px;color:var(--text-3)">模型学习</span></div>
+          <div class="hbar-track"><div class="hbar-fill" style="width:97%"><span class="hbar-val">37 · 0.91</span></div></div>
+        </div>
+        <div class="hbar-row">
+          <div class="hbar-label">Science Education<br><span style="font-size:11px;color:var(--text-3)">科学教育</span></div>
+          <div class="hbar-track"><div class="hbar-fill" style="width:97%"><span class="hbar-val">37 · 0.97</span></div></div>
+        </div>
+        <div class="hbar-row">
+          <div class="hbar-label">Mental Models<br><span style="font-size:11px;color:var(--text-3)">心智模型</span></div>
+          <div class="hbar-track"><div class="hbar-fill" style="width:92%"><span class="hbar-val">35 · 0.94</span></div></div>
+        </div>
+        <div class="hbar-row">
+          <div class="hbar-label">Scientific Practice<br><span style="font-size:11px;color:var(--text-3)">科学实践</span></div>
+          <div class="hbar-track"><div class="hbar-fill" style="width:71%"><span class="hbar-val">27 · 0.93</span></div></div>
+        </div>
+        <div class="hbar-row">
+          <div class="hbar-label">Collaborative Modeling<br><span style="font-size:11px;color:var(--text-3)">协作建模</span></div>
+          <div class="hbar-track"><div class="hbar-fill" style="width:66%"><span class="hbar-val">25 · 0.85</span></div></div>
+        </div>
+        <div class="hbar-row">
+          <div class="hbar-label">Modeling Instruction<br><span style="font-size:11px;color:var(--text-3)">建模教学</span></div>
+          <div class="hbar-track"><div class="hbar-fill" style="width:63%"><span class="hbar-val">24 · 0.86</span></div></div>
+        </div>
+        <div class="hbar-row">
+          <div class="hbar-label">Reinforcement Learning<br><span style="font-size:11px;color:var(--text-3)">强化学习</span></div>
+          <div class="hbar-track"><div class="hbar-fill" style="width:58%"><span class="hbar-val">22 · 0.94</span></div></div>
+        </div>
+        <div class="hbar-row">
+          <div class="hbar-label">Conception Change<br><span style="font-size:11px;color:var(--text-3)">概念转变</span></div>
+          <div class="hbar-track"><div class="hbar-fill" style="width:58%"><span class="hbar-val">22 · 0.92</span></div></div>
+        </div>
+        <div class="hbar-row">
+          <div class="hbar-label">AI in Education<br><span style="font-size:11px;color:var(--text-3)">人工智能教育</span></div>
+          <div class="hbar-track"><div class="hbar-fill" style="width:53%;background:var(--accent-3)"><span class="hbar-val">20 · 0.97</span></div></div>
+        </div>
+      </div>
+      <p class="dim2 mt-m" style="font-size:12px;text-align:right">数据：突发性强度 (Strength) · 开始年份 2017–2020</p>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════ 8. DOMESTIC HOTSPOTS ═══════════════════════════════ -->
+  <section class="slide" data-title="国内研究热点">
+    <p class="kicker">04 · 国内研究热点</p>
+    <h2 class="h2">CNKI 国内 Top 10 关键词</h2>
+    <p class="lede">国内重点关注模型教学、核心素养与概念转变</p>
+    <div class="card mt-l" style="padding:32px">
+      <div class="stack">
+        <div class="hbar-row">
+          <div class="hbar-label">模型教学<br><span style="font-size:11px;color:var(--text-3)">Model Teaching</span></div>
+          <div class="hbar-track"><div class="hbar-fill" style="width:100%"><span class="hbar-val">39 · 0.99</span></div></div>
+        </div>
+        <div class="hbar-row">
+          <div class="hbar-label">模型认知<br><span style="font-size:11px;color:var(--text-3)">Model Cognition</span></div>
+          <div class="hbar-track"><div class="hbar-fill" style="width:95%"><span class="hbar-val">37 · 0.99</span></div></div>
+        </div>
+        <div class="hbar-row">
+          <div class="hbar-label">核心素养<br><span style="font-size:11px;color:var(--text-3)">Core Competency</span></div>
+          <div class="hbar-track"><div class="hbar-fill" style="width:92%"><span class="hbar-val">36 · 0.99</span></div></div>
+        </div>
+        <div class="hbar-row">
+          <div class="hbar-label">科学思维<br><span style="font-size:11px;color:var(--text-3)">Scientific Thinking</span></div>
+          <div class="hbar-track"><div class="hbar-fill" style="width:79%"><span class="hbar-val">31 · 0.95</span></div></div>
+        </div>
+        <div class="hbar-row">
+          <div class="hbar-label">概念转变<br><span style="font-size:11px;color:var(--text-3)">Conceptual Change</span></div>
+          <div class="hbar-track"><div class="hbar-fill" style="width:69%"><span class="hbar-val">27 · 0.99</span></div></div>
+        </div>
+        <div class="hbar-row">
+          <div class="hbar-label">教学设计<br><span style="font-size:11px;color:var(--text-3)">Instructional Design</span></div>
+          <div class="hbar-track"><div class="hbar-fill" style="width:69%"><span class="hbar-val">27 · 0.93</span></div></div>
+        </div>
+        <div class="hbar-row">
+          <div class="hbar-label">物理教学<br><span style="font-size:11px;color:var(--text-3)">Physics Teaching</span></div>
+          <div class="hbar-track"><div class="hbar-fill" style="width:64%"><span class="hbar-val">25 · 0.89</span></div></div>
+        </div>
+        <div class="hbar-row">
+          <div class="hbar-label">实验教学<br><span style="font-size:11px;color:var(--text-3)">Experiment Teaching</span></div>
+          <div class="hbar-track"><div class="hbar-fill" style="width:59%"><span class="hbar-val">23 · 0.95</span></div></div>
+        </div>
+        <div class="hbar-row">
+          <div class="hbar-label">建模能力<br><span style="font-size:11px;color:var(--text-3)">Modeling Competence</span></div>
+          <div class="hbar-track"><div class="hbar-fill" style="width:54%"><span class="hbar-val">21 · 0.94</span></div></div>
+        </div>
+        <div class="hbar-row">
+          <div class="hbar-label">教学策略<br><span style="font-size:11px;color:var(--text-3)">Teaching Strategy</span></div>
+          <div class="hbar-track"><div class="hbar-fill" style="width:51%;background:var(--accent-2);opacity:.5"><span class="hbar-val">20 · 0.96</span></div></div>
+        </div>
+      </div>
+      <p class="dim2 mt-m" style="font-size:12px;text-align:right">数据：突发性强度 (Strength) · 开始年份 2017–2021</p>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════ 9. THREE CLUSTERS ══════════════════════════════════ -->
+  <section class="slide" data-title="三大研究聚类">
+    <p class="kicker">05 · 核心研究主题</p>
+    <h2 class="h2">三大研究聚类主题</h2>
+    <p class="lede">基于 LLR 算法的关键词聚类分析揭示三个核心方向</p>
+    <div class="stack mt-l">
+      <div class="cluster-card" style="border-left:4px solid var(--accent)">
+        <div style="display:flex;align-items:baseline;gap:12px">
+          <span style="font-family:var(--font-serif);font-size:48px;font-weight:800;color:var(--accent);opacity:.2;line-height:1">#0</span>
+          <div>
+            <h4 style="font-family:var(--font-serif);margin:0">聚类一：模型与建模教学的理论与实践</h4>
+            <p class="dim mt-s">以 Schwarz (2009)、Windschitl (2008) 等人为代表，聚焦模型建构、模型修正与模型评价的完整教学循环。强调学生在建模实践中发展科学思维，通过"建模—检验—修正"的迭代过程促进深层概念理解。国内研究多关注物理学科中的模型教学设计与实施策略。</p>
+            <div class="tags mt-s">
+              <span class="tag">科学建模</span><span class="tag">模型学习</span><span class="tag">科学实践</span><span class="tag">建模教学</span><span class="tag">概念转变</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="cluster-card n2" style="border-left:4px solid var(--accent-2)">
+        <div style="display:flex;align-items:baseline;gap:12px">
+          <span style="font-family:var(--font-serif);font-size:48px;font-weight:800;color:var(--accent-2);opacity:.2;line-height:1">#1</span>
+          <div>
+            <h4 style="font-family:var(--font-serif);margin:0">聚类二：技术工具支持的建模环境</h4>
+            <p class="dim mt-s">涵盖计算机建模工具、虚拟仿真实验、Tracker 视频分析等技术在建模教学中的应用。基于智能体模型 (Agent-based Model) 支持三维学习，AI/ML 技术推动自适应建模学习系统发展。国内研究以 PhET 仿真、Tracker 实验分析为主要方向，国际研究更关注 AI 驱动的智能建模环境。</p>
+            <div class="tags mt-s">
+              <span class="tag">技术工具</span><span class="tag">计算建模</span><span class="tag">人工智能</span><span class="tag">仿真实验</span><span class="tag">Tracker</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="cluster-card n3" style="border-left:4px solid var(--accent-3)">
+        <div style="display:flex;align-items:baseline;gap:12px">
+          <span style="font-family:var(--font-serif);font-size:48px;font-weight:800;color:var(--accent-3);opacity:.2;line-height:1">#2</span>
+          <div>
+            <h4 style="font-family:var(--font-serif);margin:0">聚类三：模型理解与建模能力评价</h4>
+            <p class="dim mt-s">聚焦师生对模型本质的认识论理解 (Nature of Models) 和建模能力 (Modeling Competence) 的测评。从 Gilbert (2002) 的建模本质观到 Oh & Oh (2011) 的教师模型知识框架，再到当前对计算思维与系统思维融入建模能力的探索。国内研究在建模能力评价体系构建方面尚处起步阶段。</p>
+            <div class="tags mt-s">
+              <span class="tag">心智模型</span><span class="tag">建模能力</span><span class="tag">模型认知</span><span class="tag">评价体系</span><span class="tag">教师知识</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════ 10. RESEARCH FRONTIERS ═══════════════════════════ -->
+  <section class="slide" data-title="研究前沿">
+    <p class="kicker">05 · 研究前沿</p>
+    <h2 class="h2">模型与建模研究的前沿趋势</h2>
+    <div class="grid g3 mt-l">
+      <div class="card card-accent" style="text-align:center;padding:36px 24px">
+        <div style="font-family:var(--font-serif);font-size:64px;color:var(--accent);opacity:.15;line-height:1;margin-bottom:-12px">01</div>
+        <h4 style="font-family:var(--font-serif)">计算思维 × 建模</h4>
+        <p class="dim mt-s" style="font-size:14px">计算思维 (Computational Thinking) 与科学建模深度融合，学生通过编写计算模型来探索科学现象。基于智能体的建模 (Agent-based Modeling) 成为新范式。</p>
+        <div class="tags mt-m" style="justify-content:center">
+          <span class="tag tag-accent">CT</span>
+          <span class="tag">ABM</span>
+          <span class="tag">NetLogo</span>
+        </div>
+      </div>
+      <div class="card card-accent" style="text-align:center;padding:36px 24px">
+        <div style="font-family:var(--font-serif);font-size:64px;color:var(--accent-2);opacity:.15;line-height:1;margin-bottom:-12px">02</div>
+        <h4 style="font-family:var(--font-serif)">系统思维 × 建模</h4>
+        <p class="dim mt-s" style="font-size:14px">系统思维 (Systems Thinking) 成为建模教学的新目标。学生需要理解复杂系统中多因素交互、反馈回路和涌现行为。</p>
+        <div class="tags mt-m" style="justify-content:center">
+          <span class="tag tag-accent">系统论</span>
+          <span class="tag">反馈</span>
+          <span class="tag">涌现</span>
+        </div>
+      </div>
+      <div class="card card-accent" style="text-align:center;padding:36px 24px">
+        <div style="font-family:var(--font-serif);font-size:64px;color:var(--accent-3);opacity:.15;line-height:1;margin-bottom:-12px">03</div>
+        <h4 style="font-family:var(--font-serif)">AI × 建模学习</h4>
+        <p class="dim mt-s" style="font-size:14px">人工智能 (AI) 和机器学习 (ML) 作为建模新工具进入课堂。AI 驱动的自适应学习系统支持个性化建模学习路径设计。</p>
+        <div class="tags mt-m" style="justify-content:center">
+          <span class="tag" style="border-color:var(--accent-3);color:var(--accent-3)">AI</span>
+          <span class="tag">ML</span>
+          <span class="tag">自适应</span>
+        </div>
+      </div>
+    </div>
+    <!-- Summary -->
+    <div class="card card-soft mt-l" style="text-align:center;padding:28px">
+      <div class="row" style="justify-content:center;gap:40px;flex-wrap:wrap">
+        <div style="text-align:center">
+          <div class="big-num" style="font-size:56px;color:var(--accent)">S &gt; 0.7</div>
+          <div class="dim2" style="font-size:13px">聚类平均轮廓值<br>（结构显著）</div>
+        </div>
+        <div style="text-align:center">
+          <div class="big-num" style="font-size:56px;color:var(--accent-2)">Q=0.78</div>
+          <div class="dim2" style="font-size:13px">国际网络模块值<br>（WoS）</div>
+        </div>
+        <div style="text-align:center">
+          <div class="big-num" style="font-size:56px;color:var(--accent-3)">Q=0.85</div>
+          <div class="dim2" style="font-size:13px">国内网络模块值<br>（CNKI）</div>
+        </div>
+        <div style="text-align:center">
+          <div class="big-num" style="font-size:56px">11</div>
+          <div class="dim2" style="font-size:13px">S&gt;0.7 的聚类数<br>（国际 7+ 国内 4）</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════ 11. INSIGHTS ═══════════════════════════════════════ -->
+  <section class="slide" data-title="启示与建议">
+    <p class="kicker">06 · 启示与建议</p>
+    <h2 class="h2">对我国模型与建模研究的<br>三点启示</h2>
+    <div class="stack mt-l anim-stagger-list">
+      <div class="insight-item">
+        <div class="idx">01</div>
+        <div class="body">
+          <h4 style="font-family:var(--font-serif)">强化模型与建模教学的实证研究</h4>
+          <p class="dim">国际研究注重基于证据的教学实践 (Evidence-based Practice)，通过准实验设计和长期追踪研究验证建模教学的效果。国内当前以经验总结和教学设计为主，需加强系统性的实证验证，包括建模教学对学生概念转变、科学思维发展的长期影响。</p>
+          <div style="margin-top:8px">
+            <span class="tag tag-accent">实证研究</span>
+            <span class="tag">准实验</span>
+            <span class="tag">长期追踪</span>
+          </div>
+        </div>
+      </div>
+      <div class="insight-item">
+        <div class="idx">02</div>
+        <div class="body">
+          <h4 style="font-family:var(--font-serif)">推动技术工具与建模教学的深度融合</h4>
+          <p class="dim">国际研究已将 AI/ML、计算建模、虚拟仿真等技术深度嵌入建模教学流程。国内应超越"技术辅助"的阶段，探索技术作为建模认知工具 (Cognitive Tool) 的深层整合——从简单的 PhET 仿真操作，走向让学生借助计算模型、智能体建模等工具进行自主建模探究。</p>
+          <div style="margin-top:8px">
+            <span class="tag">AI/ML</span>
+            <span class="tag">计算建模</span>
+            <span class="tag">认知工具</span>
+          </div>
+        </div>
+      </div>
+      <div class="insight-item">
+        <div class="idx">03</div>
+        <div class="body">
+          <h4 style="font-family:var(--font-serif)">构建系统化的建模能力评价体系</h4>
+          <p class="dim">国际研究已发展出多维度的建模能力评价框架，涵盖模型建构、模型使用、模型比较与模型修正等维度。国内在"模型认知"素养评价方面处于起步阶段，亟需开发基于学习进阶 (Learning Progression) 的建模能力评价体系，实现对建模能力的可测量、可追踪、可比较。</p>
+          <div style="margin-top:8px">
+            <span class="tag tag-accent">评价体系</span>
+            <span class="tag">学习进阶</span>
+            <span class="tag">能力维度</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════ 12. THANKS ═══════════════════════════════════════ -->
+  <section class="slide center tc" data-title="致谢">
+    <div data-anim="fade-up">
+      <div style="font-family:var(--font-serif);font-size:120px;color:var(--accent);font-weight:800;letter-spacing:-.04em;line-height:1;opacity:.15">§</div>
+      <h2 class="h2" style="margin-top:-40px">感谢聆听</h2>
+      <p class="lede" style="margin:14px auto;max-width:48ch">
+        模型是科学思维的语言，<br>建模是科学探究的引擎。
+      </p>
+      <div class="mt-l" style="font-family:var(--font-sans);font-size:15px;color:var(--text-2);line-height:1.8">
+        <p style="margin:0"><strong>郝一阳</strong> · 南京师范大学物理科学与技术学院</p>
+        <p style="margin:4px 0;color:var(--text-3);font-size:13px">《物理教师》2026, Vol.47 No.4</p>
+      </div>
+      <div class="row mt-xl" style="justify-content:center;gap:16px">
+        <span class="tag tag-accent">CiteSpace 6.4.R1</span>
+        <span class="tag">WoS + CNKI</span>
+        <span class="tag">2015–2025</span>
+      </div>
+      <p class="dim2 mt-l" style="font-size:13px;font-style:italic">
+        欢迎提问与交流 · Q &amp; A
+      </p>
+    </div>
+  </section>
+
+</div><!-- /deck -->
+
+<!-- Progress bar (auto-managed by runtime) -->
+<div class="progress-bar"><span></span></div>
+
+<script>
+/* ===== html-ppt :: minimal runtime ===== */
+(function(){
+  'use strict';
+  const deck = document.querySelector('.deck');
+  if (!deck) return;
+  const slides = Array.from(deck.querySelectorAll('.slide'));
+  if (!slides.length) return;
+
+  let idx = 0;
+  const total = slides.length;
+
+  /* progress bar */
+  const barFill = document.querySelector('.progress-bar span');
+
+  /* navigation */
+  function go(n){
+    n = Math.max(0, Math.min(total-1, n));
+    slides.forEach((s,i) => {
+      s.classList.toggle('is-active', i===n);
+      s.classList.toggle('is-prev', i<n);
+    });
+    idx = n;
+    if (barFill) barFill.style.width = ((n+1)/total*100)+'%';
+    const numEl = document.querySelector('.slide-number');
+    if (numEl) { numEl.setAttribute('data-current', n+1); numEl.setAttribute('data-total', total); }
+
+    /* update hash */
+    const hashTarget = '#/'+(n+1);
+    if (location.hash !== hashTarget) {
+      history.replaceState(null,'', hashTarget);
+    }
+
+    /* re-trigger animations */
+    slides[n].querySelectorAll('[data-anim]').forEach(el => {
+      const a = el.getAttribute('data-anim');
+      el.style.animation = 'none';
+      void el.offsetWidth;
+      el.style.animation = '';
+    });
+  }
+
+  /* fullscreen */
+  function fullscreen(){
+    const el = document.documentElement;
+    if (!document.fullscreenElement) {
+      el.requestFullscreen && el.requestFullscreen();
+    } else {
+      document.exitFullscreen && document.exitFullscreen();
+    }
+  }
+
+  /* keyboard */
+  document.addEventListener('keydown', function(e){
+    if (e.metaKey||e.ctrlKey||e.altKey) return;
+    switch(e.key){
+      case 'ArrowRight': case ' ': case 'PageDown': go(idx+1); e.preventDefault(); break;
+      case 'ArrowLeft': case 'PageUp': go(idx-1); e.preventDefault(); break;
+      case 'Home': go(0); break;
+      case 'End': go(total-1); break;
+      case 'f': case 'F': fullscreen(); break;
+    }
+  });
+
+  /* hash deep-link */
+  function fromHash(){
+    const m = /^#\/(\d+)/.exec(location.hash||'');
+    if (m) go(Math.max(0, parseInt(m[1],10)-1));
+  }
+  window.addEventListener('hashchange', fromHash);
+  fromHash();
+  go(0);
+
+  /* touch support */
+  let touchStartX = 0, touchStartY = 0;
+  document.addEventListener('touchstart', function(e){
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+  }, {passive:true});
+  document.addEventListener('touchend', function(e){
+    const dx = (e.changedTouches[0]||{}).clientX - touchStartX;
+    const dy = (e.changedTouches[0]||{}).clientY - touchStartY;
+    if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 50) {
+      go(idx + (dx < 0 ? 1 : -1));
+    }
+  });
+})();
+</script>
+</body>
+</html>
